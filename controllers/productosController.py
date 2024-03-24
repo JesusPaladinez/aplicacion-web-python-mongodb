@@ -1,6 +1,5 @@
-from app import app
-from baseDatos.mongoDB import productos, categorias
-from flask import Flask, render_template, request, jsonify, redirect, url_for,session
+from app import app, productos, categorias
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import pymongo
 import os
 from bson.objectid import ObjectId
@@ -81,9 +80,9 @@ def agregarProducto():
             else:
                 mensaje="Problemas al agregar"
 
-            return render_template ("/formulario.html",estado= estado, mensaje=mensaje,)
+            return render_template ("/formulario.html",estado= estado, mensaje=mensaje)
 
-        except pymongo.errors as error:
+        except pymongo.errors.PyMongoError as error:
             mensaje = error
             return error
     else:
@@ -135,9 +134,10 @@ def actualizar_producto(producto_id):
             }
             productos.update_one({"_id": ObjectId(producto_id)}, {"$set": producto_actualizado})
 
-            if foto:
+            if foto and foto.filename != '':
                 nombreFoto = f"{producto_id}.jpg"
                 foto.save(os.path.join(app.config["UPLOAD_FOLDER"], nombreFoto))
+
 
             return redirect(url_for("home"))
 
@@ -166,12 +166,4 @@ def eliminar_producto(producto_id):
     else:
         mensaje ="Debe ingresar con sus datos"
         return render_template("login.html",mensaje=mensaje)
-
-@app.route("/salir")
-def salir():
-    """
-    Función para cerrar sesión al momento de salir de la aplicación.
-    """
-    session.clear()
-    mensaje="Se ha cerrado sesion"
-    return render_template("login.html",mensaje=mensaje)    
+   

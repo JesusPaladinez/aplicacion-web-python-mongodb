@@ -1,6 +1,5 @@
-from app import app
-from baseDatos.mongoDB import usuarios
-from flask import Flask, render_template, request, redirect, session,url_for
+from app import app, usuarios
+from flask import Flask, render_template, request, redirect, session, url_for
 import pymongo
 
 # Esta función solo reenderiza la interfaz del login utilizando el metodo GET
@@ -14,7 +13,7 @@ los que están en la base de datos, luego se valida para que pueda ingresar a la
 iniciado sesión.
 """
 @app.route("/", methods=["POST"])
-def login ():
+def login():
     mensaje=None
     estado=None
     try:

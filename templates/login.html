@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
-    <link rel="stylesheet" href="../static/Style/login.css">
+    <link rel="stylesheet" href="/static/styles/login.css">
 </head>
 <body>
 
     <div class="container">
-        <div class="cc">
+        <div class="children">
             <div class="form-container">
-                <p class="title">Login</p>
+                <p class="title">Iniciar sesion</p>
                 <form class="form" method="post" action="{{ url_for('login') }}">
                     <div class="input-group">
-                        <label for="username">Username</label>
-                        <input type="email" name="correo" required class="inputField" id="username" placeholder="Username">
+                        <label for="username">Correo</label>
+                        <input type="email" name="correo" required class="inputField" id="username" >
                     </div>
                     <div class="input-group">
-                        <label for="password">Password</label>
-                        <input type="password"  name="contraseña" required class="inputField" id="password" placeholder="Password">
+                        <label for="password">Contraseña</label>
+                        <input type="password"  name="contraseña" required class="inputField" id="password" >
                     </div>
                     <button class="sign" id="button" >Ingresar</button>
                     <p>{{mensaje}}</p>
