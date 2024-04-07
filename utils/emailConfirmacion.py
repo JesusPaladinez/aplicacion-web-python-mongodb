@@ -11,3 +11,4 @@ def enviarEmailDeConfirmacion(usuario):
     asunto = f'Confirmación de ingreso'
     mensaje = f'Me permito informar que el usuario {usuario['nombre']} ha ingresado al sistema!'
     yag.send(destinatarios, asunto, mensaje)
+    

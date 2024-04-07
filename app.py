@@ -1,14 +1,21 @@
 from flask import Flask
-from baseDatos.mongoDB import *
+from flask_mongoengine import MongoEngine
 
 app = Flask(__name__)
 
+app.secret_key = 'password_secret'
 app.config["UPLOAD_FOLDER"]="/static/img"
 
-app.secret_key = 'password'
+app.config['MONGODB_SETTINGS'] = [{
+    'db': 'gestionProductos',
+    'host': 'localhost',
+    'port': 27017
+}]
+
+db = MongoEngine(app)
 
 from controllers.productosController import *
 from controllers.usuariosController import *
 
 if __name__=="__main__":
-    app.run(debug=True, port=3000)
+    app.run(debug=True)
