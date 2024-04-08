@@ -1,4 +1,4 @@
-from app import app, productos, categorias
+from app import app
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import pymongo
 import os
@@ -8,7 +8,7 @@ from io import BytesIO
 from bson.json_util import dumps
 from pymongo import MongoClient
 from controllers.usuariosController import *
-from models.model import Usuario, Producto, Categoria
+from models.model import Usuarios, Productos, Categorias
 from PIL import Image
 
 """
@@ -23,7 +23,8 @@ def home():
     de los productos, y finalmente se agrega a una lista para poder mostrarlos en la interfaz reenderizada.
     """
     if("correo"in session):        
-        listaProductos = Producto.objects()
+        listaProductos = Productos.objects()
+        print(len(listaProductos))
         return render_template("listarProductos.html", productos=listaProductos)
     else:
         mensaje = "Debe iniciar sesión"
@@ -35,7 +36,7 @@ def vistaAgregarProducto():
     Se busca las categorias disponibles, y se reenderiza el formulario para agregar productos.
     """
     if("correo"in session):
-        listaCategorias = Categoria.objects()
+        listaCategorias = Categorias.objects()
         return render_template("formulario.html",categorias=listaCategorias)
     else:
         mensaje ="Debe ingresar con sus datos"
@@ -55,10 +56,10 @@ def agregarProducto():
         try:
             datos = request.json  # lectura de datos que vienen del formulario
             print(datos)
-            datosProducto = request.get('producto')
+            datosProducto = request.json['producto']
             print(datosProducto)
             fotoBase64 = datos.get('foto')["foto"]
-            producto = Producto(**datosProducto) # objeto con el modelo Producto
+            producto = Productos(**datosProducto) # objeto con el modelo Producto
             print(producto.precio)
             producto.save() # guardar en la base de datos
             
@@ -93,32 +94,12 @@ def agregarProducto():
 @app.route('/consultar/<codigo>', methods=['GET'])    
 def cosultar(codigo):
     if "correo" in session:
-        producto = Producto.objects(codigo=codigo).first()
-        listaCategorias = Categoria.objects()
+        producto = Productos.objects(codigo=codigo).first()
+        listaCategorias = Categorias.objects()
         return render_template('listarProductos.html', categorias=listaCategorias, producto=producto)
     else:
         mensaje = 'Datos inválidos.'
         return render_template('login.html', mensaje=mensaje)
-    
-@app.route("/editarProducto/<producto_id>", methods=["GET"])
-def editar_producto(producto_id):
-    """
-    Se busca el producto con un id en específico, si existe se busca la categoria a la que pertenece, y 
-    finalmente se reenderiza la interfaz para editar el producto.    
-    """
-    if "correo" in session:
-        try:
-            producto = productos.find_one({"_id": ObjectId(producto_id)})
-            if producto:
-                listaCategorias = categorias.find()
-                return render_template("editarProducto.html", producto=producto, categorias=listaCategorias)
-            else:
-                return "Producto no encontrado."
-        except pymongo.errors.PyMongoError as error:
-            return f"Error al cargar el producto: {error}"
-    else:
-        mensaje = "Debe ingresar con sus datos"
-        return render_template("login.html", mensaje=mensaje)
     
 @app.route('/editarProductoJson', methods=['PUT'])
 def editarProductoJson():
@@ -127,10 +108,10 @@ def editarProductoJson():
         mensaje = None
         try:
             datos = request.json
-            datosProducto = datos.get('producto')
+            datosProducto = datos.json['producto']
             fotoBase64 = datos.get('foto')["foto"]
             idProducto = ObjectId(datosProducto['id'])
-            producto = Producto.objects(id=idProducto).first()
+            producto = Productos.objects(id=idProducto).first()
             if producto:
                 producto.codigo = int(datosProducto['codigo'])
                 producto.nombre = datosProducto['nombre']
@@ -159,44 +140,7 @@ def editarProductoJson():
         return jsonify(retorno)
     else:
         mensaje = 'Datos inválidos.'
-        return render_template('login.html', mensaje=mensaje, estado=estado)
-    
-@app.route("/actualizarProducto/<producto_id>", methods=["POST"])
-def actualizar_producto(producto_id):
-    """
-    Se obtienen los valores de cada campo, esos valores se agregan a un nuevo diccionario producto_actualizado,
-    en en el metodo update_one de mongo se entrega el id del producto a actualizar, en el metodo set se 
-    entrega el producto_actualizado, se valida si la foto también se va a actualizar, y finalmente se 
-    redirecciona a la ruta principal.  
-    """
-    if "correo" in session:
-        try:
-            codigo = int(request.form["codigo"]) 
-            nombre = request.form["nombre"]
-            precio = int(request.form["precio"])
-            idCategoria = request.form["categoria"]
-            foto = request.files["imagen"]
-            producto_actualizado = {
-                "codigo": codigo,
-                "nombre": nombre,
-                "precio": precio,
-                "categoria": ObjectId(idCategoria)
-            }
-            productos.update_one({"_id": ObjectId(producto_id)}, {"$set": producto_actualizado})
-
-            if foto and foto.filename != '':
-                nombreFoto = f"{producto_id}.jpg"
-                foto.save(os.path.join(app.config["UPLOAD_FOLDER"], nombreFoto))
-
-
-            return redirect(url_for("home"))
-
-        except pymongo.errors.PyMongoError as error:
-            return f"Error al actualizar el producto: {error}"
-    else:
-        mensaje = "Debe ingresar con sus datos"
-        return render_template("login.html", mensaje=mensaje)
-    
+        return render_template('login.html', mensaje=mensaje, estado=estado) 
 
 @app.route('/eliminarJson/<id>', methods=['DELETE'])
 def eliminarJson(id):
@@ -204,7 +148,7 @@ def eliminarJson(id):
         estado = False
         mensaje = None
         try:
-            producto = Producto.objects(id=id).first()
+            producto = Productos.objects(id=id).first()
             if producto:
                 producto.delete()
                 mensaje = 'Producto eliminado correctamente.'
@@ -219,23 +163,3 @@ def eliminarJson(id):
     else:
         mensaje = 'Datos inválidos.'
         return render_template('login.html', mensaje=mensaje, estado=estado)
-    
-@app.route("/eliminarProducto/<producto_id>", methods=["GET"])
-def eliminar_producto(producto_id):
-    """
-    Se elimina el producto con un id en específico, si se elimina se redirecciona a la ruta pricipal,
-    de lo contrario se retorna un mensaje de error al eliminar.
-    """
-    if("correo"in session):
-        try:
-            resultado = productos.delete_one({"_id": ObjectId(producto_id)})
-            if resultado.deleted_count == 1:
-                return redirect(url_for("home"))
-            else:
-                return "Producto no encontrado."
-        except pymongo.errors.PyMongoError as error:
-            return f"Error al eliminar el producto: {error}"
-    else:
-        mensaje ="Debe ingresar con sus datos"
-        return render_template("login.html",mensaje=mensaje)
-   

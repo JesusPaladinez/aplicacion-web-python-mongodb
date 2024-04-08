@@ -1,8 +1,9 @@
-from app import app, usuarios
+from app import app
 from flask import Flask, render_template, request, redirect, session, url_for
 import pymongo
 from utils.emailConfirmacion import enviarEmailDeConfirmacion
 import threading
+from models.model import Usuarios
 
 # Esta función solo reenderiza la interfaz del login utilizando el metodo GET
 @app.route("/", methods=['GET'])
@@ -22,16 +23,14 @@ def login():
         correo  = request.form["correo"]
         contraseña = request.form["contraseña"]
         consulta = {"correo":correo, "contraseña":contraseña}
-        user = usuarios.find_one(consulta)
+        user = Usuarios.objects(correo=correo, contraseña=contraseña).first()
         if (user):
             session["correo"]=correo
-            thread = threading.Thread(target=enviarEmailDeConfirmacion, args=(user,))
-            thread.start()
-            return redirect (url_for("home"))
+            return redirect("/home")
         else:
             mensaje = "Datos no validos"   
-    except pymongo.errors.PyMongoError as error:
-        mensaje = error
+    except Exception as error:
+        mensaje = str(error)
     return render_template("login.html",estado=estado,mensaje=mensaje)
 
 @app.route("/salir")
