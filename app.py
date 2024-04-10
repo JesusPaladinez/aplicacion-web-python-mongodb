@@ -14,7 +14,6 @@ app.config['MONGODB_SETTINGS'] = {
 
 db = MongoEngine(app)
 
-
 from controllers.productosController import *
 from controllers.usuariosController import *
 

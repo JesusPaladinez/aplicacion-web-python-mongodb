@@ -12,7 +12,7 @@
 <body>
     <div class="cc">
         <div class="contenedor">
-            <h3>Registrar Productos</h3>
+            <h3>Agregar Productos</h3>
             <form  action="agregarProductos" method="post" enctype="multipart/form-data">
                 <div class="cct">
                     <div class="o">
@@ -32,7 +32,7 @@
                         <select name="categoria" id="categoria">
                             <option value="">seleccione su categoria</option>
                             {% for categoria in categorias %}
-                                <option value="{{categoria['_id']}}">{{categoria['nombre']}}</option>
+                                <option value="{{categoria.id}}">{{categoria.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>

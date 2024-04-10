@@ -16,7 +16,9 @@
 
 .children {
     background: linear-gradient(to right bottom, #43b7b8, #335cc5, #5c2774);
-    width: 22%;
+    width: 30%;
+    text-transform: uppercase;
+    font-weight: bolder;
     display: flex;
     flex-direction: column;
     gap: 1rem;

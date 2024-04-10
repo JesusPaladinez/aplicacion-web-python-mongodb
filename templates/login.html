@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
     <link rel="stylesheet" href="/static/styles/login.css">
+    <script src="https://www.google.com/recaptcha/api.js"></script>
 </head>
 <body>
-
     <div class="container">
         <div class="children">
             <div class="form-container">
@@ -21,6 +21,7 @@
                         <label for="password">Contraseña</label>
                         <input type="password"  name="contraseña" required class="inputField" id="password" >
                     </div>
+                    <div class="g-recaptcha" data-sitekey="6LdpH7cpAAAAAHAxDStlT6ypVP6IT7_oHIWtz7aX"></div>
                     <button class="sign" id="button" >Ingresar</button>
                     <p>{{mensaje}}</p>
                 </form>

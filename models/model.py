@@ -16,3 +16,4 @@ class Productos(Document):
     nombre = StringField(max_length=50)
     precio = IntField()
     categoria = ReferenceField(Categorias, required=True)
+    foto = StringField(required=True)

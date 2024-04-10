@@ -1,5 +1,5 @@
 from app import app
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 import pymongo
 import os
 from bson.objectid import ObjectId
@@ -42,53 +42,36 @@ def vistaAgregarProducto():
         mensaje ="Debe ingresar con sus datos"
         return render_template("login.html",mensaje=mensaje)
 
-@app.route("/agregarProductos", methods=["POST"])
+@app.route('/agregarProducto', methods=['GET', 'POST'])
 def agregarProducto():
-    """
-    Se obtienen los valores de cada campo, esos valores se agregan a un diccionario producto, producto se
-    agrega a la colleccion, con acknowledged se verifica que el producto este en la colleccion, se le
-    da un id al producto, se carga la imagen de UPLOAD_FOLDER, se muestra un mensaje informando si el
-    producto se pudo agregar, y finalmente se redirecciona a la ruta principal.  
-    """
-    mensaje = None
-    estado = False
-    if("correo"in session):
-        try:
-            datos = request.json  # lectura de datos que vienen del formulario
-            print(datos)
-            datosProducto = request.json['producto']
-            print(datosProducto)
-            fotoBase64 = datos.get('foto')["foto"]
-            producto = Productos(**datosProducto) # objeto con el modelo Producto
-            print(producto.precio)
-            producto.save() # guardar en la base de datos
-            
-            # validar el resultado de la inserción del producto
-            # si se ha guardado bien, se crea el id del producto
-            if(producto.id):
-                rutaImagen = f"{os.path.join(app.config['UPLOAD_FOLDER' ])}/(producto.id).jpg"
-                #Seleccionar del formato base64, la parte que tiene que
-                #ver con la imagen, que va después de la coma.
-                fotoBase64 = fotoBase64[fotoBase64.index(',')+1:]
-                #decodificar la imagen utilizando la libreria base64
-                imagenDecodificada = base64.b64decode(fotoBase64)
-                #crear la imagen con Image de la libreria Pillow
-                imagen = Image.open(BytesIO(imagenDecodificada))
-                #convertir la imagen a tipo de formato
-                imagenJpg = imagen.convert("RGB")
-                #guardar la imagen en el servidor en la ruta creada
-                imagenJpg.save(rutaImagen)
-                estado=True
-                mensaje="Producto Agregado Correctamente"
-            else:
-                mensaje="Problemas al agregar el producto"
-        except Exception as error:
-            mensaje = str(error)
-        retorno = {'estado': estado, 'mensaje': mensaje}
-        return jsonify(retorno)
+    if request.method == 'POST':
+        codigo = request.form['codigo']
+        nombre = request.form['nombre']
+        precio = request.form['precio']
+        categoria = request.form['categoria']
+        foto = request.files['foto']
+
+        # Verificar si el código del producto ya existe en la base de datos
+        if Productos.objects(codigo=codigo).first():
+            flash('Ya existe un producto con ese código', 'error')
+            return redirect(url_for('agregarProducto'))
+
+        # Si el código no existe se guarda en la base de datos
+        producto = Productos(
+            codigo=codigo,
+            nombre=nombre,
+            precio=precio,
+            categoria=categoria,
+            foto=foto.filename
+        )
+        producto.save() #Esta es la instruccion que guarda el producto
+
+        flash('Producto agregado correctamente', 'success') #Flask  es para mostrar los mensajes desde el lado del cliente
+        return redirect(url_for('agregarProducto'))
+
     else:
-        mensaje ="Debe ingresar con sus datos"
-        return render_template("login.html",mensaje=mensaje)
+        productos = Productos.objects().all()
+        return render_template('agregarProducto.html', productos=productos)
     
 # conultar producto por codigo
 @app.route('/consultar/<codigo>', methods=['GET'])    
